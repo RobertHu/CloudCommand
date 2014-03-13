@@ -106,7 +106,6 @@ class ProtoHandler(BaseHandler):
         self.timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
         try:
             post_data = self.request.body
-
             parser = PacketParser(post_data, self)
             yield parser.run(self.end)
         except Exception, e:
@@ -208,7 +207,6 @@ class PacketParser(object):
             action = self.req_packet.action[i]
             params = self.req_packet.params[i]
             self.req_actions.append(action[3:])
-
             try:
                 self.com_param['reqaction'] = action  # 用于记录统计数据
                 self.com_param['reqactno'] = i + 1
