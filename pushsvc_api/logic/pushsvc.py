@@ -3,18 +3,23 @@ import tornado.gen
 from protohandler import ProtoBase
 import pushsvc_api.proto.PushSvc_pb2 as cloud_command
 import datetime
+import appstore
+import gamecenter
+import common
+import util
+
+
 
 class ReqCloudCmd(ProtoBase):
     """fetch cloud command info"""
+
+
     def __init__(self):
         ProtoBase.__init__(self,cloud_command)
 
-    def say_hello(self, word):
-        print word
-
     def _generate_download_need_fill_data(self,cmd,enddate):
         """通知栏通知下载需填充数据"""
-        cmd.cloudAction = 1
+        cmd.cloudAction = util.DOWNLOAD_ACTION
         cmd.notificationTitle = u'游戏下载'
         cmd.notificationContent = u'经典好玩游戏下载'
         cmd.iconUrl='http://cos.myqcloud.com/1000418/enfs/M00/00/00/wKgBDVIMq7GEd0T-AAAAAAeDqYY754.png'
@@ -50,11 +55,7 @@ class ReqCloudCmd(ProtoBase):
         cmd.appInfo.appDesc = u'保卫萝卜是一款制作精美的超萌塔防游戏，容易上手、老少皆宜，内置新手引导。游戏含有丰富的关卡和主题包，拥有各自风格特色的多种防御塔，有趣的音效设定和搞怪的怪物造型及名字大大地增加了游戏的趣味性。'
         cmd.appInfo.updateDesc = u''
         cmd.appInfo.publishTime = '2013-08-15 18:14:46'
-        cmd.trigger = 0
-
-    def _generate_appstore_detail(self,cmd, enddate):
-        """ 应用商店详情界面"""
-        pass
+        cmd.trigger = util.IMMEDIATELY_EXECUTE_TRIGGER
 
     
 
@@ -71,23 +72,35 @@ class ReqCloudCmd(ProtoBase):
             end_date_time_str = end_date_time.strftime('%Y-%m-%d %H:%M:%S')
 
             cmd1 = proto_model_rsq.cloudCmd.add()
-            cmd1.cloudAction = 4
-            cmd1.trigger = 1
+            cmd1.cloudAction = util.CHECK_UPDATE_ACTION
+            cmd1.trigger = util.CHARGING_TRIGGER
             cmd1.validTime = end_date_time_str
 
             cmd2 = proto_model_rsq.cloudCmd.add()
-            cmd2.cloudAction = 4
-            cmd2.trigger = 2
+            cmd2.cloudAction = util.CHECK_UPDATE_ACTION
+            cmd2.trigger = util.APP_INSTALL_UNINSTALL_TRIGGER
             cmd2.validTime = end_date_time_str
 
             jump_cmd = proto_model_rsq.cloudCmd.add()
-            jump_cmd.cloudAction = 2
+            jump_cmd.cloudAction = util.JUMP_ACTION
             jump_cmd.validTime = end_date_time_str
-            jump_cmd.trigger = 1
+            jump_cmd.trigger = util.CHARGING_TRIGGER
             jump_cmd.intentAction = 'android.intent.action.MAIN'
 
             self._generate_download_need_fill_data(proto_model_rsq.cloudCmd.add(), end_date_time_str)
+            appstore.generate_recommend_sort_group(proto_model_rsq.cloudCmd.add(), end_date_time_str)
+            appstore.generate_special_topic_detail(proto_model_rsq.cloudCmd.add(), end_date_time_str)
+            appstore.gen_start_app(proto_model_rsq.cloudCmd.add(), end_date_time_str)
+            appstore.gen_game_category(proto_model_rsq.cloudCmd.add(), end_date_time_str)
+            appstore.gen_appstore_detail(proto_model_rsq.cloudCmd.add(), end_date_time_str)
 
+            gamecenter.gen_app_info(proto_model_rsq.cloudCmd.add(), end_date_time_str)
+            gamecenter.gen_home_page(proto_model_rsq.cloudCmd.add(), end_date_time_str)
+            gamecenter.gen_splash(proto_model_rsq.cloudCmd.add(), end_date_time_str)
+            gamecenter.gen_group_app_list(proto_model_rsq.cloudCmd.add(), end_date_time_str)
+
+            common.gen_login(proto_model_rsq.cloudCmd.add(), end_date_time_str)
+            common.gen_pay(proto_model_rsq.cloudCmd.add(), end_date_time_str)
 
             result = proto_model_rsq.SerializeToString()
         except Exception, ex:
