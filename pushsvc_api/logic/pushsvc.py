@@ -1,7 +1,7 @@
 #-*- encoding=utf8 -*-
 import tornado.gen
 from protohandler import ProtoBase
-import pushsvc_api.proto.PushSvc_pb2 as cloud_command
+from ..proto import PushSvc_pb2 as cloud_command
 import datetime
 import appstore
 import gamecenter
@@ -16,6 +16,16 @@ class ReqCloudCmd(ProtoBase):
 
     def __init__(self):
         ProtoBase.__init__(self,cloud_command)
+
+    def _generate_hint_package(self, cmd, end_date):
+        """添加角标 """
+        cmd.cloudAction = 3
+        cmd.trigger = util.IMMEDIATELY_EXECUTE_TRIGGER
+        cmd.intentAction = 'gamecenter.refresh.unread.num.service.action'
+        cmd.validTime = end_date
+        cmd.hintCount = -1
+
+
 
     def _generate_download_need_fill_data(self,cmd,enddate):
         """通知栏通知下载需填充数据"""
@@ -88,6 +98,8 @@ class ReqCloudCmd(ProtoBase):
             jump_cmd.intentAction = 'android.intent.action.MAIN'
 
             self._generate_download_need_fill_data(proto_model_rsq.cloudCmd.add(), end_date_time_str)
+            self._generate_hint_package(proto_model_rsq.cloudCmd.add(), end_date_time_str)
+
             appstore.generate_recommend_sort_group(proto_model_rsq.cloudCmd.add(), end_date_time_str)
             appstore.generate_special_topic_detail(proto_model_rsq.cloudCmd.add(), end_date_time_str)
             appstore.gen_start_app(proto_model_rsq.cloudCmd.add(), end_date_time_str)
